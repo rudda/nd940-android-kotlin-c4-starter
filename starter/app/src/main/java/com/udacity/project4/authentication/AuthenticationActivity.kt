@@ -18,11 +18,11 @@ import com.udacity.project4.locationreminders.RemindersActivity
  */
 class AuthenticationActivity : AppCompatActivity() {
     private val RC_SIGN_IN = 123
+    var auth = FirebaseAuth.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_authentication)
-        val auth = FirebaseAuth.getInstance()
 
 //          TODO: If the user was authenticated, send him to RemindersActivity
         if (auth.currentUser != null) {
@@ -71,7 +71,7 @@ class AuthenticationActivity : AppCompatActivity() {
                 showReminderActivity()
 
             } else {
-                registerUser()
+                //registerUser()
             }
         }
 

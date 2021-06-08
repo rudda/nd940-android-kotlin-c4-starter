@@ -4,14 +4,13 @@ import android.app.Application
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import androidx.test.espresso.Espresso.onView
-import androidx.test.espresso.action.ViewActions.click
-import androidx.test.espresso.action.ViewActions.replaceText
+import androidx.test.espresso.action.ViewActions
+import androidx.test.espresso.assertion.ViewAssertions
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import com.udacity.project4.locationreminders.RemindersActivity
 import com.udacity.project4.locationreminders.data.ReminderDataSource
-import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.local.LocalDB
 import com.udacity.project4.locationreminders.data.local.RemindersLocalRepository
 import com.udacity.project4.locationreminders.reminderslist.RemindersListViewModel
@@ -26,9 +25,13 @@ import org.koin.core.context.stopKoin
 import org.koin.dsl.module
 import org.koin.test.AutoCloseKoinTest
 import org.koin.test.get
-import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.matcher.RootMatchers
+import androidx.test.espresso.matcher.ViewMatchers
+import com.google.firebase.auth.FirebaseAuth
+import com.udacity.project4.authentication.AuthenticationActivity
 import com.udacity.project4.util.DataBindingIdlingResource
-import com.udacity.project4.util.monitorActivity
+import org.hamcrest.CoreMatchers
+import org.mockito.Mockito
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
@@ -38,8 +41,12 @@ class RemindersActivityTest :
 
     private lateinit var repository: ReminderDataSource
     private lateinit var appContext: Application
+    private lateinit var viewModel: SaveReminderViewModel
+    private lateinit var activity: RemindersActivity
+
     // An idling resource that waits for Data Binding to have no pending bindings.
     private val dataBindingIdlingResource = DataBindingIdlingResource()
+
     /**
      * As we use Koin as a Service Locator Library to develop our code, we'll also use Koin to test our code.
      * at this step we will initialize Koin related code to be able to use it in out testing.
@@ -76,46 +83,38 @@ class RemindersActivityTest :
             repository.deleteAllReminders()
         }
     }
+     // begin test
 
+    @Test
+    fun createReminder_NoLocation() {
 
-//    TODO: add End to End testing to the app
-@Test
-fun addReminder_showReminder() = runBlocking {
+        val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
 
-    // Set initial state
-    val reminder = ReminderDTO("Call a friend","calling ...",
-        "Parc de La Victoire",
-        36.74208242672705,3.072958588600159)
+        onView(ViewMatchers.withId(R.id.noDataTextView))
+            .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
+        onView(ViewMatchers.withId(R.id.addReminderFAB)).perform(ViewActions.click())
+        onView(ViewMatchers.withId(R.id.reminderTitle))
+            .perform(ViewActions.replaceText("TITLE"))
+        onView(ViewMatchers.withId(R.id.saveReminder)).perform(ViewActions.click())
+        onView(ViewMatchers.withId(com.google.android.material.R.id.snackbar_text))
+            .check(ViewAssertions.matches(ViewMatchers.withText(R.string.err_select_location)))
 
-    repository.saveReminder(reminder)
+        activityScenario.close()
+    }
 
-    //Start up Tasks screen
-    val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
-    dataBindingIdlingResource.monitorActivity(activityScenario)
+    @Test
+    fun createReminder_noTitle() {
 
-    onView(withText(reminder.title)).check(matches(isDisplayed()))
-    onView(withText(reminder.location)).check(matches(isDisplayed()))
-    onView(withText(reminder.description)).check(matches(isDisplayed()))
+        val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
 
-    onView(withId(R.id.addReminderFAB)).perform(click())
-    onView(withId(R.id.reminderTitle)).perform(replaceText("NEW TITLE"))
-    onView(withId(R.id.reminderDescription)).perform(replaceText("NEW DESCRIPTION"))
+        onView(ViewMatchers.withId(R.id.noDataTextView))
+            .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
+        onView(ViewMatchers.withId(R.id.addReminderFAB)).perform(ViewActions.click())
+        onView(ViewMatchers.withId(R.id.saveReminder)).perform(ViewActions.click())
+        onView(ViewMatchers.withId(com.google.android.material.R.id.snackbar_text))
+            .check(ViewAssertions.matches(ViewMatchers.withText(R.string.err_enter_title)))
 
-    onView(withId(R.id.selectLocation)).perform(click())
+        activityScenario.close()
+    }
 
-    onView(withId(R.id.map)).check(matches(isDisplayed()))
-    onView(withId(R.id.map)).perform(click())
-
-    onView(withId(R.id.save)).perform(click())
-
-    onView(withId(R.id.saveReminder)).check(matches(isDisplayed()))
-    onView(withId(R.id.saveReminder)).perform(click())
-
-    onView(withText("NEW TITLE")).check(matches(isDisplayed()))
-    onView(withText("NEW DESCRIPTION")).check(matches(isDisplayed()))
-
-    // Make sure the activity is closed before the db
-    activityScenario.close()
-
-}
 }

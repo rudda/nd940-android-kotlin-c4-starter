@@ -79,7 +79,7 @@ class SaveReminderFragment : BaseFragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.lifecycleOwner = this
         binding.selectLocation.setOnClickListener {
-            if(locationIsOn()) {
+            if (locationIsOn()) {
                 //            Navigate to another fragment to get the user location
                 _viewModel.navigationCommand.value =
                     NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToSelectLocationFragment())
@@ -97,13 +97,25 @@ class SaveReminderFragment : BaseFragment() {
             val location = _viewModel.reminderSelectedLocationStr.value
             val latitude = _viewModel.latitude.value
             val longitude = _viewModel.longitude.value
-            Log.i("MAPPPP", longitude.toString())
 
-            val reminder = ReminderDataItem(title, description.value, location, latitude, longitude)
-            reminderId = reminder.id
-            addGeofence(reminderId)
-            _viewModel.saveReminder(reminder)
 
+           try {
+               val reminder = ReminderDataItem(title, description.value, location, latitude, longitude)
+               reminderId = reminder.id
+               addGeofence(reminderId)
+               _viewModel.saveReminder(reminder)
+           }catch (error: java.lang.Exception) {
+               if( title == null ) {
+                   Snackbar.make(binding.root, R.string.err_enter_title, Snackbar.LENGTH_LONG)
+                       .show()
+               }
+
+               else if ( latitude == null || longitude== null  ) {
+                   Snackbar.make(binding.root, R.string.err_select_location, Snackbar.LENGTH_LONG)
+                       .show()
+               }
+
+           }
         }
     }
 
