@@ -24,7 +24,6 @@ class AuthenticationActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_authentication)
 
-//          TODO: If the user was authenticated, send him to RemindersActivity
         if (auth.currentUser != null) {
             showReminderActivity()
         } else {
@@ -34,7 +33,6 @@ class AuthenticationActivity : AppCompatActivity() {
     }
 
     private fun registerUser() {
-        //TODO: Implement the create account and sign in using FirebaseUI, use sign in using email and sign in using Google
         startActivityForResult(
             // Get an instance of AuthUI based on the default app
             AuthUI.getInstance().createSignInIntentBuilder().build(),

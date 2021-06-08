@@ -30,7 +30,7 @@ class RemindersLocalRepositoryTest {
     private lateinit var repository: RemindersLocalRepository
     private lateinit var db: RemindersDatabase
 
-//    TODO: Add testing implementation to the RemindersLocalRepository.kt
+
 
     @get:Rule
     var instantExecutorRule = InstantTaskExecutorRule()
