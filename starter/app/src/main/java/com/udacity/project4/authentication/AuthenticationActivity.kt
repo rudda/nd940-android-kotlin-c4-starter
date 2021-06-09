@@ -4,6 +4,8 @@ import android.app.Activity
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.IdpResponse
@@ -69,7 +71,9 @@ class AuthenticationActivity : AppCompatActivity() {
                 showReminderActivity()
 
             } else {
-                //registerUser()
+                Log.i("onActivityResult", "Failed - error ${response?.error}")
+                Toast.makeText(this, "Failed to login", Toast.LENGTH_SHORT).show()
+                registerUser()
             }
         }
 
@@ -77,8 +81,7 @@ class AuthenticationActivity : AppCompatActivity() {
 
     private fun showReminderActivity() {
         // already signed in
-        val reminderActivity = Intent(this, RemindersActivity::class.java)
-        reminderActivity.flags = FLAG_ACTIVITY_CLEAR_TOP
-        startActivity(reminderActivity)
+        startActivity(Intent(this, RemindersActivity::class.java))
+        finish()
     }
 }
