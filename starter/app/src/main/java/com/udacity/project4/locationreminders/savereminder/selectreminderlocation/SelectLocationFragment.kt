@@ -178,6 +178,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         map.setOnPoiClickListener { pointOfInterest ->
             run {
                 _viewModel.selectedPOI.value = pointOfInterest
+                _viewModel.reminderSelectedLocationStr.value = pointOfInterest.name
                 map.addMarker(MarkerOptions().position(pointOfInterest.latLng))
             }
         }

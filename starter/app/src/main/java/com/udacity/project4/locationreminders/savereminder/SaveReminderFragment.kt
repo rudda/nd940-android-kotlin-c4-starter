@@ -92,30 +92,38 @@ class SaveReminderFragment : BaseFragment() {
 
 
         binding.saveReminder.setOnClickListener {
+
             val title = _viewModel.reminderTitle.value
             val description = _viewModel.reminderDescription
             val location = _viewModel.reminderSelectedLocationStr.value
             val latitude = _viewModel.latitude.value
             val longitude = _viewModel.longitude.value
 
+            val reminder =
+                ReminderDataItem(title, description.value, location, latitude, longitude)
+            reminderId = reminder.id
+            addGeofence(reminderId)
+            _viewModel.validateAndSaveReminder(reminder)
 
-           try {
-               val reminder = ReminderDataItem(title, description.value, location, latitude, longitude)
-               reminderId = reminder.id
-               addGeofence(reminderId)
-               _viewModel.saveReminder(reminder)
-           }catch (error: java.lang.Exception) {
-               if( title == null ) {
-                   Snackbar.make(binding.root, R.string.err_enter_title, Snackbar.LENGTH_LONG)
-                       .show()
-               }
+            /**
+            try {
+            val reminder =
+            ReminderDataItem(title, description.value, location, latitude, longitude)
+            reminderId = reminder.id
+            addGeofence(reminderId)
+            _viewModel.saveReminder(reminder)
+            } catch (error: java.lang.Exception) {
+            if (title == null) {
+            Snackbar.make(binding.root, R.string.err_enter_title, Snackbar.LENGTH_LONG)
+            .show()
+            } else if (latitude == null || longitude == null) {
+            Snackbar.make(binding.root, R.string.err_select_location, Snackbar.LENGTH_LONG)
+            .show()
+            }
 
-               else if ( latitude == null || longitude== null  ) {
-                   Snackbar.make(binding.root, R.string.err_select_location, Snackbar.LENGTH_LONG)
-                       .show()
-               }
-
-           }
+            }
+            }
+             **/
         }
     }
 
@@ -177,45 +185,47 @@ class SaveReminderFragment : BaseFragment() {
     }
 
     private fun addGeofence(reminderId: String) {
-        val geofence = Geofence.Builder()
-            .setRequestId(reminderId)
-            .setCircularRegion(
-                _viewModel.latitude.value!!,
-                _viewModel.longitude.value!!,
-                30f
-            )
-            .setExpirationDuration(1000 * 60 * 60 * 12) // Month
-            .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
-            .build()
-
-        val geofencingRequest = GeofencingRequest.Builder()
-            .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
-            .addGeofence(geofence)
-            .build()
-
-        if (ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            return
-        }
-        geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)?.run {
-            addOnSuccessListener {
-                Toast.makeText(
-                    requireActivity(), "Geofences Added",
-                    Toast.LENGTH_SHORT
+        if(_viewModel.latitude != null && _viewModel.longitude.value != null) {
+            val geofence = Geofence.Builder()
+                .setRequestId(reminderId)
+                .setCircularRegion(
+                    _viewModel.latitude.value!!,
+                    _viewModel.longitude.value!!,
+                    30f
                 )
-                    .show()
-                Log.i("Add Geofence", geofence.requestId)
+                .setExpirationDuration(1000 * 60 * 60 * 12) // Month
+                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
+                .build()
+
+            val geofencingRequest = GeofencingRequest.Builder()
+                .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+                .addGeofence(geofence)
+                .build()
+
+            if (ActivityCompat.checkSelfPermission(
+                    requireContext(),
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                return
             }
-            addOnFailureListener {
-                Toast.makeText(
-                    requireActivity(), R.string.geofences_not_added,
-                    Toast.LENGTH_SHORT
-                ).show()
-                if ((it.message != null)) {
-                    Log.w(TAG, it.message!!)
+            geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)?.run {
+                addOnSuccessListener {
+                    Toast.makeText(
+                        requireActivity(), "Geofences Added",
+                        Toast.LENGTH_SHORT
+                    )
+                        .show()
+                    Log.i("Add Geofence", geofence.requestId)
+                }
+                addOnFailureListener {
+                    Toast.makeText(
+                        requireActivity(), R.string.geofences_not_added,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    if ((it.message != null)) {
+                        Log.w(TAG, it.message!!)
+                    }
                 }
             }
         }
@@ -258,7 +268,7 @@ class SaveReminderFragment : BaseFragment() {
         }
     }
 
-    @TargetApi(29)
+    @TargetApi(30)
     private fun requestForegroundAndBackgroundLocationPermissions() {
         if (foregroundAndBackgroundLocationPermissionApproved())
             return

@@ -7,10 +7,12 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.databinding.DataBindingUtil
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.IdpResponse
 import com.google.firebase.auth.FirebaseAuth
 import com.udacity.project4.R
+import com.udacity.project4.databinding.ActivityAuthenticationBinding
 import com.udacity.project4.locationreminders.RemindersActivity
 
 
@@ -21,17 +23,15 @@ import com.udacity.project4.locationreminders.RemindersActivity
 class AuthenticationActivity : AppCompatActivity() {
     private val RC_SIGN_IN = 123
     var auth = FirebaseAuth.getInstance()
+    private lateinit var mBinding : ActivityAuthenticationBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_authentication)
 
-        if (auth.currentUser != null) {
-            showReminderActivity()
-        } else {
-            userLogin()
+        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_authentication)
+        mBinding.loginBt.setOnClickListener {
+                userLogin()
         }
-
     }
 
     private fun registerUser() {
