@@ -52,7 +52,7 @@ class ReminderListFragment : BaseFragment() {
         setTitle(getString(R.string.app_name))
 
         binding.refreshLayout.setOnRefreshListener { _viewModel.loadReminders() }
-
+        requestForegroundAndBackgroundLocationPermissions()
         return binding.root
     }
 
@@ -63,13 +63,14 @@ class ReminderListFragment : BaseFragment() {
         binding.addReminderFAB.setOnClickListener {
             navigateToAddReminder()
         }
+
     }
 
     override fun onResume() {
         super.onResume()
         //load the reminders list on the ui
         _viewModel.loadReminders()
-        requestForegroundAndBackgroundLocationPermissions()
+
     }
 
     private fun navigateToAddReminder() {
@@ -88,7 +89,6 @@ class ReminderListFragment : BaseFragment() {
 //        setup the recycler view using the extension function
         binding.reminderssRecyclerView.setup(adapter)
     }
-
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.logout -> {
@@ -105,6 +105,8 @@ class ReminderListFragment : BaseFragment() {
         return super.onOptionsItemSelected(item)
 
     }
+
+
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
@@ -139,40 +141,10 @@ class ReminderListFragment : BaseFragment() {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK
                     })
                 }.show()
-        } else {
-            checkDeviceLocationSettingsAndStartGeofence()
         }
     }
 
-    private fun checkDeviceLocationSettingsAndStartGeofence(resolve: Boolean = true) {
 
-        val locationRequest = LocationRequest.create().apply {
-            priority = LocationRequest.PRIORITY_LOW_POWER
-        }
-        val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
-
-        val settingsClient = LocationServices.getSettingsClient(requireActivity())
-        val locationSettingsResponseTask =
-            settingsClient.checkLocationSettings(builder.build())
-
-        locationSettingsResponseTask.addOnFailureListener { exception ->
-            if (exception is ResolvableApiException && resolve) {
-                try {
-                    // Show the dialog by calling startResolutionForResult(),
-                    // and check the result in onActivityResult().
-                    exception.startResolutionForResult(
-                        requireActivity(),
-                        SaveReminderFragment.REQUEST_TURN_DEVICE_LOCATION_ON
-                    )
-                } catch (sendEx: IntentSender.SendIntentException) {
-                    Log.d(
-                        SaveReminderFragment.TAG,
-                        "Error geting location settings resolution: " + sendEx.message
-                    )
-                }
-            }
-        }
-    }
 
     @TargetApi(30)
     private fun requestForegroundAndBackgroundLocationPermissions() {
