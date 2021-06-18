@@ -104,26 +104,6 @@ class SaveReminderFragment : BaseFragment() {
             reminderId = reminder.id
             addGeofence(reminderId)
             _viewModel.validateAndSaveReminder(reminder)
-
-            /**
-            try {
-            val reminder =
-            ReminderDataItem(title, description.value, location, latitude, longitude)
-            reminderId = reminder.id
-            addGeofence(reminderId)
-            _viewModel.saveReminder(reminder)
-            } catch (error: java.lang.Exception) {
-            if (title == null) {
-            Snackbar.make(binding.root, R.string.err_enter_title, Snackbar.LENGTH_LONG)
-            .show()
-            } else if (latitude == null || longitude == null) {
-            Snackbar.make(binding.root, R.string.err_select_location, Snackbar.LENGTH_LONG)
-            .show()
-            }
-
-            }
-            }
-             **/
         }
     }
 
@@ -162,7 +142,7 @@ class SaveReminderFragment : BaseFragment() {
         }
         locationSettingsResponseTask.addOnCompleteListener {
             if (it.isSuccessful) {
-                if (locationIsOn()) {
+                if (locationIsOn() && foregroundAndBackgroundLocationPermissionApproved()) {
                     addGeofence(reminderId)
                 }
             }
