@@ -75,6 +75,13 @@ class RemindersDaoTest {
     }
 
     @Test
+    fun getReminders_notFound() = runBlockingTest {
+        val reminderId = UUID.randomUUID().toString()
+        val loadedFromRandomId = remindersDao.getReminderById(reminderId)
+        assertThat(loadedFromRandomId, nullValue())
+    }
+
+    @Test
     fun getReminders_success() = runBlockingTest {
         // GIVING - insert three reminders
         val r1 = ReminderDTO("t1","d1",

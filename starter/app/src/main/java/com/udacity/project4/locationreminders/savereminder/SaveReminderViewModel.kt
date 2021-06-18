@@ -38,6 +38,7 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
      */
     fun validateAndSaveReminder(reminderData: ReminderDataItem) {
         if (validateEnteredData(reminderData)) {
+            showLoading.value = true
             saveReminder(reminderData)
         }
     }

@@ -102,7 +102,9 @@ class SaveReminderFragment : BaseFragment() {
             val reminder =
                 ReminderDataItem(title, description.value, location, latitude, longitude)
             reminderId = reminder.id
-            addGeofence(reminderId)
+            if (locationIsOn() && foregroundAndBackgroundLocationPermissionApproved()) {
+                addGeofence(reminderId)
+            }
             _viewModel.validateAndSaveReminder(reminder)
         }
     }
@@ -142,9 +144,9 @@ class SaveReminderFragment : BaseFragment() {
         }
         locationSettingsResponseTask.addOnCompleteListener {
             if (it.isSuccessful) {
-                if (locationIsOn() && foregroundAndBackgroundLocationPermissionApproved()) {
+                /*if (locationIsOn() && foregroundAndBackgroundLocationPermissionApproved()) {
                     addGeofence(reminderId)
-                }
+                }*/
             }
         }
     }
