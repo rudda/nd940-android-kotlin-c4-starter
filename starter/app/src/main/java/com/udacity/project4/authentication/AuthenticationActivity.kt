@@ -6,14 +6,19 @@ import android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.IdpResponse
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.udacity.project4.R
 import com.udacity.project4.databinding.ActivityAuthenticationBinding
 import com.udacity.project4.locationreminders.RemindersActivity
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 
 /**
@@ -22,8 +27,10 @@ import com.udacity.project4.locationreminders.RemindersActivity
  */
 class AuthenticationActivity : AppCompatActivity() {
     private val RC_SIGN_IN = 123
-    var auth = FirebaseAuth.getInstance()
+
     private lateinit var mBinding : ActivityAuthenticationBinding
+    private val authenticationViewModel by viewModels<AuthenticationViewModel>()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,6 +39,14 @@ class AuthenticationActivity : AppCompatActivity() {
         mBinding.loginBt.setOnClickListener {
                 userLogin()
         }
+
+        authenticationViewModel.showReminderActivity.observe(this, Observer { show ->
+            run {
+                if (show) {
+                    showReminderActivity()
+                }
+            }
+        })
     }
 
     private fun registerUser() {
@@ -67,7 +82,6 @@ class AuthenticationActivity : AppCompatActivity() {
 
             if (resultCode == Activity.RESULT_OK) {
                 // Successfully signed in
-                val user = FirebaseAuth.getInstance().currentUser
                 showReminderActivity()
 
             } else {
@@ -80,8 +94,20 @@ class AuthenticationActivity : AppCompatActivity() {
     }
 
     private fun showReminderActivity() {
-        // already signed in
         startActivity(Intent(this, RemindersActivity::class.java))
         finish()
     }
+
+
+    override fun onResume() {
+        super.onResume()
+        authenticationViewModel.onActive()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        authenticationViewModel.onInactive()
+    }
+
+
 }
