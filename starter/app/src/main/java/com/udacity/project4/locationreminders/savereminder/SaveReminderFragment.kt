@@ -99,14 +99,18 @@ class SaveReminderFragment : BaseFragment() {
             reminder =
                 ReminderDataItem(title, description.value, location, latitude, longitude)
             reminderId = reminder.id
-            checkDeviceLocationSettingsAndStartGeofence(true)
+
+            if(foregroundAndBackgroundLocationPermissionApproved()) {
+                checkDeviceLocationSettingsAndStartGeofence(true)
+            } else {
+                requestForegroundAndBackgroundLocationPermissions()
+            }
         }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_TURN_DEVICE_LOCATION_ON) {
-            // We don't rely on the result code, but just check the location setting again
             checkDeviceLocationSettingsAndStartGeofence(false)
         }
     }
@@ -125,8 +129,6 @@ class SaveReminderFragment : BaseFragment() {
         locationSettingsResponseTask.addOnFailureListener { exception ->
             if (exception is ResolvableApiException && resolve) {
                 try {
-                    // Show the dialog by calling startResolutionForResult(),
-                    // and check the result in onActivityResult().
                     exception.startResolutionForResult(
                         requireActivity(),
                         REQUEST_TURN_DEVICE_LOCATION_ON
@@ -151,20 +153,6 @@ class SaveReminderFragment : BaseFragment() {
         }
     }
 
-    private fun locationIsOn(): Boolean {
-        val lm = context!!.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        var gps_enabled = false
-        var network_enabled = false
-
-        try {
-            gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER)
-            network_enabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
-        } catch (ex: Exception) {
-        }
-
-
-        return (gps_enabled && network_enabled)
-    }
 
     @SuppressLint("MissingPermission")
     private fun addGeofence(reminderId: String) {
