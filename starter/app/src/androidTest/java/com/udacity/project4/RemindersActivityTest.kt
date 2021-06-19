@@ -5,6 +5,7 @@ import androidx.core.content.ContentProviderCompat
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.action.ViewActions
 import androidx.test.espresso.assertion.ViewAssertions
 import androidx.test.espresso.matcher.ViewMatchers.*
@@ -34,7 +35,10 @@ import com.google.firebase.auth.FirebaseAuth
 import com.udacity.project4.authentication.AuthenticationActivity
 import com.udacity.project4.util.DataBindingIdlingResource
 import com.udacity.project4.util.ToastMatcher
+import com.udacity.project4.util.monitorActivity
+import com.udacity.project4.utils.EspressoIdlingResource
 import org.hamcrest.CoreMatchers
+import org.junit.After
 import org.mockito.Mockito
 
 @RunWith(AndroidJUnit4::class)
@@ -87,12 +91,25 @@ class RemindersActivityTest :
             repository.deleteAllReminders()
         }
     }
+
+    @Before
+    fun idlingRegistry(){
+        IdlingRegistry.getInstance().register(EspressoIdlingResource.countingIdlingResource)
+        IdlingRegistry.getInstance().register(dataBindingIdlingResource)
+    }
+
+    @After
+    fun unregisterIdlingResource() {
+        IdlingRegistry.getInstance().unregister(EspressoIdlingResource.countingIdlingResource)
+        IdlingRegistry.getInstance().unregister(dataBindingIdlingResource)
+    }
      // begin test
 
     @Test
     fun createReminder_NoLocation() {
 
         val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
+        dataBindingIdlingResource.monitorActivity(activityScenario)
 
         onView(ViewMatchers.withId(R.id.noDataTextView))
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
@@ -110,6 +127,7 @@ class RemindersActivityTest :
     fun createReminder_noTitle() {
 
         val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
+        dataBindingIdlingResource.monitorActivity(activityScenario)
 
         onView(ViewMatchers.withId(R.id.noDataTextView))
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
@@ -122,9 +140,10 @@ class RemindersActivityTest :
     }
 
     @Test
-    fun createReminder() = runBlocking {
+    fun createReminder()  {
 
         val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
+        dataBindingIdlingResource.monitorActivity(activityScenario)
 
         onView(ViewMatchers.withId(R.id.noDataTextView))
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
