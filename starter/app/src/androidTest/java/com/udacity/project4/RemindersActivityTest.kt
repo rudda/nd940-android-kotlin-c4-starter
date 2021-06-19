@@ -1,6 +1,7 @@
 package com.udacity.project4
 
 import android.app.Application
+import androidx.core.content.ContentProviderCompat
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import androidx.test.espresso.Espresso.onView
@@ -27,9 +28,12 @@ import org.koin.test.AutoCloseKoinTest
 import org.koin.test.get
 import androidx.test.espresso.matcher.RootMatchers
 import androidx.test.espresso.matcher.ViewMatchers
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.PointOfInterest
 import com.google.firebase.auth.FirebaseAuth
 import com.udacity.project4.authentication.AuthenticationActivity
 import com.udacity.project4.util.DataBindingIdlingResource
+import com.udacity.project4.util.ToastMatcher
 import org.hamcrest.CoreMatchers
 import org.mockito.Mockito
 
@@ -77,7 +81,7 @@ class RemindersActivityTest :
         }
         //Get our real repository
         repository = get()
-
+        viewModel = get()
         //clear the data to start fresh
         runBlocking {
             repository.deleteAllReminders()
@@ -113,6 +117,40 @@ class RemindersActivityTest :
         onView(ViewMatchers.withId(R.id.saveReminder)).perform(ViewActions.click())
         onView(ViewMatchers.withId(com.google.android.material.R.id.snackbar_text))
             .check(ViewAssertions.matches(ViewMatchers.withText(R.string.err_enter_title)))
+
+        activityScenario.close()
+    }
+
+    @Test
+    fun createReminder() = runBlocking {
+
+        val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
+
+        onView(ViewMatchers.withId(R.id.noDataTextView))
+            .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
+        // more click
+        onView(ViewMatchers.withId(R.id.addReminderFAB)).perform(ViewActions.click())
+        // set title
+        onView(ViewMatchers.withId(R.id.reminderTitle))
+            .perform(ViewActions.replaceText("TITLE"))
+        // set description
+        onView(ViewMatchers.withId(R.id.reminderDescription))
+            .perform(ViewActions.replaceText("DESCRIPTION"))
+        // SET LOCATION MOCK
+
+
+        viewModel.selectedPOI.postValue(PointOfInterest(LatLng(0.0, 0.0), "TestLocation", "ID"))
+        viewModel.reminderSelectedLocationStr.postValue("TestLocation")
+        viewModel.latitude.postValue(0.0)
+        viewModel.longitude.postValue(0.0)
+
+        //save
+        onView(ViewMatchers.withId(R.id.saveReminder)).perform(ViewActions.click())
+
+
+        // Then I should see the select POI message
+        onView(withText(R.string.reminder_saved)).inRoot(ToastMatcher())
+            .check(ViewAssertions.matches(isDisplayed()))
 
         activityScenario.close()
     }
